@@ -1,4 +1,3 @@
-
 Documentation()
 TOPAS-080226: Felder 50000..50030 und 60000..60002
 
@@ -3656,6 +3655,61 @@ IF AUzeile.FINDFIRST THEN
 
                 IF ChampZuordnungHolen."Menge kalk." = 0 THEN
                   ERROR(Text120,AUzeile."No.",AUzeile."Line No.",ChampZuordnungHolen.FIELDCAPTION("Menge kalk."));
+                  
+                //***************************************************************************************************
+                //            Prüft auch darauf, ob nach der Buchung nur genau ein aktives Basisgerät vorliegt
+                //***************************************************************************************************
+
+                basisgerät_kollision_ok := FALSE;
+                IF ChampZuordnungHolen.Basisgerät THEN
+                  BEGIN
+                    ServiceZuordnungBeleg.RESET;
+                    ServiceZuordnungBeleg.SETFILTER(Art,'%1',ServiceZuordnungBeleg.Art :: "SUP-AU");
+                    ServiceZuordnungBeleg.SETFILTER("Nr.",'%1',AUnr);
+                    ServiceZuordnungBeleg.SETFILTER("Zeilennr.",'%1',AUzeile."Line No.");
+                    IF ServiceZuordnungBeleg.FINDFIRST THEN
+                      REPEAT
+                        PrüfeServicePos.RESET;
+                        PrüfeServicePos.SETFILTER(Art,'%1',PrüfeServicePos.Art ::Temporär);
+                        PrüfeServicePos.SETFILTER("Nr.",'%1',ServiceZuordnungBeleg."Belegnr.");
+                        PrüfeServicePos.SETFILTER("Belegzeilennr.",'%1',ServiceZuordnungBeleg."Belegzeilennr.");
+                        PrüfeServicePos.SETFILTER(Vormerkung,'%1',TRUE);
+                        IF PrüfeServicePos.FINDFIRST THEN
+                          BEGIN
+                            PrüfeSystemPos.RESET;
+                            PrüfeSystemPos.SETFILTER(Art,'%1|%2',PrüfeSystemPos.Art :: System,PrüfeSystemPos.Art :: Service);
+                            PrüfeSystemPos.SETFILTER("Seriennr.",'%1',PrüfeServicePos."Seriennr.");
+                            IF PrüfeSystemPos.FINDFIRST THEN
+                              BEGIN
+                                PrüfeServicePos.RESET;
+                                PrüfeServicePos.SETFILTER(Art,'%1|%2',PrüfeServicePos.Art :: System,PrüfeServicePos.Art :: Service);
+                                PrüfeServicePos.SETFILTER("Nr.",'<>%1','');
+                                PrüfeServicePos.SETFILTER("Belegzeilennr.",'<>%1',0);
+                                PrüfeServicePos.SETFILTER(Basisgerät,'%1',TRUE);
+                                PrüfeServicePos.SETFILTER("Wartungsvertragsnr.",'%1',PrüfeSystemPos."Wartungsvertragsnr.");
+                                PrüfeServicePos.SETFILTER(Inaktiv,'%1',FALSE);
+                                IF PrüfeServicePos.FINDFIRST THEN
+                                  REPEAT
+                                    IF PrüfeServicePos.Art = PrüfeServicePos.Art :: Service THEN
+                                      BEGIN
+                                        IF PrüfeServicePos."Urspr. Lieferscheinnr." <> ChampZuordnungHolen."Belegnr." THEN
+                                          ERROR(Text134,PrüfeServicePos."Wartungsvertragsnr.",PrüfeServicePos."Seriennr.")
+                                        ELSE
+                                          basisgerät_kollision_ok := TRUE;
+                                      END
+                                    ELSE
+                                      BEGIN
+                                        IF PrüfeServicePos.Art = PrüfeServicePos.Art :: System THEN
+                                          IF PrüfeServicePos."Nr." <> ChampZuordnungHolen."Belegnr." THEN
+                                            ERROR(Text134,PrüfeServicePos."Wartungsvertragsnr.",PrüfeServicePos."Seriennr.")
+                                          ELSE
+                                            basisgerät_kollision_ok := TRUE;
+                                      END;
+                                  UNTIL PrüfeServicePos.NEXT = 0;
+                             END;
+                          END;
+                      UNTIL (ServiceZuordnungBeleg.NEXT = 0) OR (basisgerät_kollision_ok);
+                  END;
 
                 //***************************************************************************************************
                 //         Prüfung Menge kalk. gegen Auswahl Seriennr. der einzelnen Artikel, Fall 2 oder 3
