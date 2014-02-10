@@ -1,4 +1,3 @@
-
 Documentation()
 # TOPAS 01.03.2011-ST System wurde um die SUP Software Upgrade Protection erweitert
 # TOPAS 26.08.2011-ST Neues CHAMPS System released, erweitertes SUP Modul
@@ -2570,6 +2569,7 @@ IF (Ermittle_Servicegruppe.FINDFIRST) AND (Ermittle_Servicegruppe."Einordnung Se
                 PrüfeLizenzTab.SETFILTER("Ablaufdatum Serviceleistung",'>%1',WORKDATE);
                 PrüfeLizenzTab.SETFILTER("Wartungsvertragsnr.",'%1',TempSystemTab."Wartungsvertragsnr.");
                 PrüfeLizenzTab.SETFILTER("Zu exportieren",'%1',TRUE);
+                PrüfeLizenzTab.SETFILTER(Basisgerät,'%1',TRUE);
                 PrüfeLizenzTab.SETFILTER(Inaktiv,'%1',FALSE);
                 PrüfeLizenzTab.ASCENDING(FALSE);
                 IF PrüfeLizenzTab.FINDFIRST THEN
