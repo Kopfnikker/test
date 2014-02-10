@@ -2561,6 +2561,7 @@ IF (Ermittle_Servicegruppe.FINDFIRST) AND (Ermittle_Servicegruppe."Einordnung Se
             TempSystemTab.SETFILTER("Nr.",'%1',Lieferscheinnr);
             TempSystemTab.SETFILTER("Belegzeilennr.",'%1',Lieferscheinzeilennr);
             TempSystemTab.SETFILTER("Seriennr.",'%1',Seriennr);
+            TempSystemTab.SETFILTER(Basisgerät,'%1',FALSE);
             TempSystemTab.SETFILTER(Inaktiv,'%1',FALSE);
             IF TempSystemTab.FINDLAST THEN
               BEGIN
