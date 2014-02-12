@@ -1,4 +1,3 @@
-
 Documentation()
 TOPAS-080207: - Neue Felder 50000..50010
               - Programmierung in Quantity-OnValidate
@@ -4520,9 +4519,12 @@ IF (Artikel."Software Upgrade Protection" = TRUE) THEN
           MESSAGE(Text120,FORMAT(Champs.Art),"Basis Artikelnr");
         IF (Champs."Laufzeit in Jahren" = 3) AND (Artikel.Artikelgruppe <> 'ACTS')
         AND (Artikel.Artikelgruppe <> 'ACHAT')  THEN
-          EXIT(ROUND(((Champs.DC * Champs."Laufzeit in Jahren") * (Laufzeit/v_laufzeit))*(0.8),rundgs_faktor))
+          EXIT(ROUND((((Champs.MSRP*0.72) * Champs."Laufzeit in Jahren") * (Laufzeit/v_laufzeit))*(0.8),rundgs_faktor))
         ELSE
-          EXIT((ROUND((Champs.DC * Champs."Laufzeit in Jahren") * (Laufzeit/v_laufzeit),rundgs_faktor))*spezial_discount);
+          IF (Artikel.Artikelgruppe = 'ACHAT') OR (Artikel.Artikelgruppe = 'ACTS') THEN
+            EXIT((ROUND(((Champs.MSRP*0.8)*Champs."Laufzeit in Jahren")*(Laufzeit/v_laufzeit),rundgs_faktor))*spezial_discount)
+          ELSE
+            EXIT((ROUND(((Champs.MSRP*0.72)*Champs."Laufzeit in Jahren")*(Laufzeit/v_laufzeit),rundgs_faktor))*spezial_discount);
       END
     ELSE
       BEGIN
