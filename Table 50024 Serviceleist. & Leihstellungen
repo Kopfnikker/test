@@ -2981,10 +2981,14 @@ IF (Artikel."Software Upgrade Protection" = TRUE) THEN
         IF Feld = 'DC' THEN
           BEGIN
             IF (Champs."Laufzeit in Jahren" = 3) AND (ACTS = FALSE) AND (ACHAT = FALSE) THEN
-              EXIT(ROUND(((Champs.DC * Champs."Laufzeit in Jahren") * (kalk_laufzeit / v_laufzeit)) * (0.8),rundgs_faktor))
+              EXIT(ROUND((((Champs.MSRP*0.72)*Champs."Laufzeit in Jahren")*(kalk_laufzeit / v_laufzeit)) * (0.8),rundgs_faktor))
             ELSE
-              EXIT((ROUND((Champs.DC * Champs."Laufzeit in Jahren") * (kalk_laufzeit / v_laufzeit),rundgs_faktor)) 
-                  * spezial_discount);
+              IF (ACHAT = TRUE) OR (ACTS = TRUE) THEN
+                EXIT((ROUND(((Champs.MSRP*0.8)*Champs."Laufzeit in Jahren")*(kalk_laufzeit / v_laufzeit),rundgs_faktor))
+                      *spezial_discount)
+              ELSE
+                EXIT((ROUND(((Champs.MSRP*0.72)*Champs."Laufzeit in Jahren")*(kalk_laufzeit / v_laufzeit),rundgs_faktor))
+                      *spezial_discount)
           END;
 
         IF Feld = 'MSRP' THEN
