@@ -3787,6 +3787,14 @@ IF AUzeile.FINDFIRST THEN
         END;
 
     UNTIL AUzeile.NEXT = 0;
+    
+    //***************************************************************************************************
+    //                                       12.02.2014-ST TOPAS
+    //   DCs der Service Artikel werden bei Abweichungen gegenüber der Service Preisliste aktualisiert
+    //***************************************************************************************************
+
+    AktualisiereServiceDC(AUnr);
+    
   END;
 
 PrüfeOVTNDA(Belegnr : Code[20];Belegart : Option)
@@ -3825,3 +3833,72 @@ IF Belegzeile.FINDFIRST THEN
           MESSAGE(Text113,Belegzeile."No.",Belegzeile."Line No.");
       END;
   UNTIL Belegzeile.NEXT = 0;
+  
+AktualisiereServiceDC(AUnr : Code[20])
+//***************************************************************************************************
+//             NEU: 12.02.2014-ST Aktualisiert die DCs aller zu liefernden Service Artikel
+//               im Auftrag und für die in der Kalkulation hinterlegten Geräte Artikel
+//***************************************************************************************************
+
+IF AUnr = '' THEN EXIT;
+
+AUzeile.RESET;
+AUzeile.SETFILTER(AUzeile."Document No.",'%1',AUnr);
+AUzeile.SETFILTER(Type,'%1',AUzeile.Type :: Item);
+AUzeile.SETFILTER(AUzeile."Qty. to Ship",'>%1',0);
+AUzeile.SETFILTER("Manufacturer Code",'%1|%2|%3|%4','53','57','59','98');
+IF AUzeile.FINDFIRST THEN
+  BEGIN
+    REPEAT
+      service_dc_einzeln_neu := 0;
+      service_dc_gesamt_neu := 0;
+      Artikel.GET(AUzeile."No.");
+      IF Artikel."Software Upgrade Protection" = TRUE THEN
+        BEGIN
+          ServiceZuordnungHolen.RESET;
+          ServiceZuordnungHolen.SETCURRENTKEY(Art,"Nr.","Zeilennr.",Gruppierung);
+          ServiceZuordnungHolen.SETFILTER(Art,'%1',ServiceZuordnungHolen.Art :: "SUP-AU");
+          ServiceZuordnungHolen.SETFILTER("Nr.",'%1',AUnr);
+          ServiceZuordnungHolen.SETFILTER("Zeilennr.",'%1',AUzeile."Line No.");
+          IF ServiceZuordnungHolen.FINDFIRST THEN
+            REPEAT
+              service_dc_einzeln_neu := ServiceTab.ChampPreiseNeuKalkulieren(ServiceZuordnungHolen."Geräte Artikelnr.",
+                                  ServiceZuordnungHolen."SUP Artikelnr.",ServiceZuordnungHolen.Laufzeit,'DC',FALSE,
+                                  AUzeile.Einkaufswährungscode);
+
+              //***************************************************************************************************
+              //    Prüft, ob die Service Artikel in der Service Preisliste zu finden ist, wenn nein dann bricht
+              //      er den Aktualisierungsvorgang komplett ab, so dass nicht der korrekte DC geändert wird
+              //***************************************************************************************************
+
+              IF  service_dc_einzeln_neu = 0 THEN EXIT;
+
+              // Jetzt wird der DC neu berechnet
+              service_dc_gesamt_neu := service_dc_gesamt_neu + (service_dc_einzeln_neu * ServiceZuordnungHolen."Menge kalk.");
+              ServiceZuordnungHolen."Service DC einzeln" := service_dc_einzeln_neu;
+              ServiceZuordnungHolen."Service DC Gesamt" := service_dc_einzeln_neu * ServiceZuordnungHolen."Menge kalk.";
+              ServiceZuordnungHolen.MODIFY;
+
+            UNTIL ServiceZuordnungHolen.NEXT = 0;
+
+          //***************************************************************************************************
+          // Vergleicht Gesamt DC aus Kalkulation und Beleg DC, führt bei Abweichung eine Aktualisierung durch
+          //***************************************************************************************************
+
+          IF (AUzeile."DC-Preis (EKW)" <> service_dc_gesamt_neu) AND (Artikel."Software Upgrade Protection" = TRUE) THEN
+            BEGIN
+              IF CONFIRM(Text135,TRUE,AUzeile."No.",AUzeile."Line No.") THEN
+                BEGIN
+                  AUzeile.VALIDATE(AUzeile."DC-Preis (EKW)",service_dc_gesamt_neu);
+                  AUzeile.MODIFY;
+
+                  Window.OPEN('#1################################\\'+
+                              'Fortschritt @2@@@@@@@@');
+                  Window.UPDATE(1,'Der Service DC wird neu errechnet...');
+                  Window.UPDATE(2,9999);
+                  Window.CLOSE;
+                END;
+            END;
+        END;
+    UNTIL AUzeile.NEXT = 0;
+  END;
