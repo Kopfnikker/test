@@ -7,62 +7,59 @@ IF Belege.FINDFIRST THEN
       anzahl:=0;
       wert:=0;
       Statistik.RESET();
-      Statistik.SETFILTER(Statistik.Art,'%1',Statistik.Art::Artikel);
+      Statistik.SETFILTER(Statistik.Art,'%1',Statistik.Art::Hersteller);
       Statistik.SETFILTER(Statistik."Debitornr.",'%1',Belege."Debitornr.");
-      Statistik.SETFILTER(Statistik."Artikelnr.2",'%1',Belege."Artikelnr.");
       Statistik.SETFILTER(Statistik.Herstellercode,'%1',Belege.Herstellercode);
       Statistik.SETFILTER(Statistik.Jahr,'%1',gjahr);
       IF Belege.Belegart = Belege.Belegart::Invoice THEN
-        BEGIN
-           wert:=Belege."Betrag MW ohne Mwst.";
-           anzahl:= Belege.Menge;
-        END
-      ELSE                                // Gutschriften
-        BEGIN
-           wert:=Belege."Betrag MW ohne Mwst."*(-1);
-           anzahl:= Belege.Menge*(-1);
-        END;
+         BEGIN
+            wert:=Belege."Betrag MW ohne Mwst.";
+            anzahl:= Belege.Menge;
+         END
+         ELSE                                // Gutschriften
+         BEGIN
+            wert:=Belege."Betrag MW ohne Mwst."*(-1);
+            anzahl:= Belege.Menge*(-1);
+         END;
 
       IF Statistik.FINDFIRST THEN
         BEGIN
-          CASE quartal OF
-            1: BEGIN; 
-                 Statistik.Q1_Menge:=anzahl+Statistik.Q1_Menge;
-                 Statistik.Q1_Wert:=wert+Statistik.Q1_Wert;
-                 Statistik."Gesamt Menge":=anzahl+Statistik."Gesamt Menge";
-                 Statistik.Gesamt_Umsatz:=wert+Statistik.Gesamt_Umsatz;
-               END;
-            2: BEGIN;
-                 Statistik.Q2_Menge:=anzahl+Statistik.Q2_Menge;
-                 Statistik.Q2_Wert:=wert+Statistik.Q2_Wert;
-                 Statistik."Gesamt Menge":=anzahl+Statistik."Gesamt Menge";
-                 Statistik.Gesamt_Umsatz:=wert+Statistik.Gesamt_Umsatz;
-               END;
-            3: BEGIN;
-                 Statistik.Q3_Menge:=anzahl+Statistik.Q3_Menge;
-                 Statistik.Q3_Wert:=wert+Statistik.Q3_Wert;
-                 Statistik."Gesamt Menge":=anzahl+Statistik."Gesamt Menge";
-                 Statistik.Gesamt_Umsatz:=wert+Statistik.Gesamt_Umsatz;
-               END;
-            4: BEGIN; 
-                 Statistik.Q4_Menge:=anzahl+Statistik.Q4_Menge;
-                 Statistik.Q4_Wert:=wert+Statistik.Q4_Wert;
-                 Statistik."Gesamt Menge":=anzahl+Statistik."Gesamt Menge";
-                 Statistik.Gesamt_Umsatz:=wert+Statistik.Gesamt_Umsatz;
-               END;
-            END;
+         CASE quartal OF
+           1: BEGIN; 
+                Statistik.Q1_Menge:=anzahl+Statistik.Q1_Menge;
+                Statistik.Q1_Wert:=wert+Statistik.Q1_Wert;
+                Statistik."Gesamt Menge":=anzahl+Statistik."Gesamt Menge";
+                Statistik.Gesamt_Umsatz:=wert+Statistik.Gesamt_Umsatz;
+              END;
+           2: BEGIN;
+                Statistik.Q2_Menge:=anzahl+Statistik.Q2_Menge;
+                Statistik.Q2_Wert:=wert+Statistik.Q2_Wert;
+                Statistik."Gesamt Menge":=anzahl+Statistik."Gesamt Menge";
+                Statistik.Gesamt_Umsatz:=wert+Statistik.Gesamt_Umsatz;
+              END;
+           3: BEGIN;
+                Statistik.Q3_Menge:=anzahl+Statistik.Q3_Menge;
+                Statistik.Q3_Wert:=wert+Statistik.Q3_Wert;
+                Statistik."Gesamt Menge":=anzahl+Statistik."Gesamt Menge";
+                Statistik.Gesamt_Umsatz:=wert+Statistik.Gesamt_Umsatz;
+              END;
+           4: BEGIN; 
+                Statistik.Q4_Menge:=anzahl+Statistik.Q4_Menge;
+                Statistik.Q4_Wert:=wert+Statistik.Q4_Wert;
+                Statistik."Gesamt Menge":=anzahl+Statistik."Gesamt Menge";
+                Statistik.Gesamt_Umsatz:=wert+Statistik.Gesamt_Umsatz;
+              END;
+           END;
 
-          Statistik.Herstellercode := Belege.Herstellercode;
-          Statistik.Kontakt := Belege.Kontakt;
-          Statistik.MODIFY;
+         Statistik.Kontakt := Belege.Kontakt;
+         Statistik.MODIFY;
 
         END
-        ELSE
+      ELSE
         BEGIN
           Statistik.INIT;
-          Statistik.Art:=Statistik.Art::Artikel;
+          Statistik.Art:=Statistik.Art::Hersteller;
           Statistik."Debitornr.":=Belege."Debitornr.";
-          Statistik."Artikelnr.2":=Belege."Artikelnr.";
           Statistik.Jahr:=gjahr;
           CASE quartal OF
             1: BEGIN; 
@@ -91,6 +88,7 @@ IF Belege.FINDFIRST THEN
                END;
             END;
 
+          Statistik."Artikelnr.2":='';
           Statistik.Herstellercode := Belege.Herstellercode;
           Statistik.Kontakt := Belege.Kontakt;
 
@@ -101,11 +99,7 @@ IF Belege.FINDFIRST THEN
                Statistik.Herstellername:=Hersteller.Herstellerkurzname;
                Statistik.Kreditor_Nr:=Hersteller."Zugeordnete Kreditorennr.";
              END
-                ELSE Statistik.Herstellername:=Belege.Herstellercode;
-
-          Artikel.RESET();
-          Artikel.SETFILTER(Artikel."No. 2",'%1',Belege."Artikelnr.");
-          IF Artikel.FINDFIRST THEN Statistik."Artikelnr.":= Artikel."No.";
+               ELSE Statistik.Herstellername:=Belege.Herstellercode;
 
           Debitor.RESET();
           Debitor.SETFILTER(Debitor."No.",'%1',Belege."Debitornr.");
@@ -119,6 +113,5 @@ IF Belege.FINDFIRST THEN
 
           Statistik.INSERT;
         END;
-
     UNTIL Belege.NEXT = 0;
   END;
