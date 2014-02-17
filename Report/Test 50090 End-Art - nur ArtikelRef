@@ -7,22 +7,21 @@ IF Belege.FINDFIRST THEN
       anzahl:=0;
       wert:=0;
       Statistik.RESET();
-      Statistik.SETFILTER(Statistik.Art,'%1',Statistik.Art::"Endkunde-Art");
+      Statistik.SETFILTER(Statistik.Art,'%1',Statistik.Art::Artikel);
       Statistik.SETFILTER(Statistik."Debitornr.",'%1',Belege."Debitornr.");
-      Statistik.SETFILTER(Statistik.Endkunde,'%1',Belege.Endkunde);
-      // Artikel    //Endkunde-Art
       Statistik.SETFILTER(Statistik."Artikelnr.2",'%1',Belege."Artikelnr.");
+      Statistik.SETFILTER(Statistik.Herstellercode,'%1',Belege.Herstellercode);
       Statistik.SETFILTER(Statistik.Jahr,'%1',gjahr);
       IF Belege.Belegart = Belege.Belegart::Invoice THEN
-         BEGIN
-            wert:=Belege."Betrag MW ohne Mwst.";
-            anzahl:= Belege.Menge;
-         END
-         ELSE                                // Gutschriften
-         BEGIN
-            wert:=Belege."Betrag MW ohne Mwst."*(-1);
-            anzahl:= Belege.Menge*(-1);
-         END;
+        BEGIN
+           wert:=Belege."Betrag MW ohne Mwst.";
+           anzahl:= Belege.Menge;
+        END
+      ELSE                                // Gutschriften
+        BEGIN
+           wert:=Belege."Betrag MW ohne Mwst."*(-1);
+           anzahl:= Belege.Menge*(-1);
+        END;
 
       IF Statistik.FINDFIRST THEN
         BEGIN
@@ -52,17 +51,18 @@ IF Belege.FINDFIRST THEN
                  Statistik.Gesamt_Umsatz:=wert+Statistik.Gesamt_Umsatz;
                END;
             END;
+
+          Statistik.Herstellercode := Belege.Herstellercode;
           Statistik.Kontakt := Belege.Kontakt;
           Statistik.MODIFY;
+
         END
-      ELSE
+        ELSE
         BEGIN
           Statistik.INIT;
-          Statistik.Art:=Statistik.Art::"Endkunde-Art";
+          Statistik.Art:=Statistik.Art::Artikel;
           Statistik."Debitornr.":=Belege."Debitornr.";
-
-          // Artikel // Endkunde-Art
-
+          Statistik."Artikelnr.2":=Belege."Artikelnr.";
           Statistik.Jahr:=gjahr;
           CASE quartal OF
             1: BEGIN; 
@@ -91,13 +91,8 @@ IF Belege.FINDFIRST THEN
                END;
             END;
 
-    ///// Endkunde-Art
-          Statistik."Artikelnr.2":=Belege."Artikelnr.";
           Statistik.Herstellercode := Belege.Herstellercode;
-          
-          Artikel.RESET();
-          Artikel.SETFILTER(Artikel."No. 2",'%1',Belege."Artikelnr.");
-          IF Artikel.FINDFIRST THEN Statistik."Artikelnr.":= Artikel."No.";
+          Statistik.Kontakt := Belege.Kontakt;
 
           Hersteller.RESET();
           Hersteller.SETFILTER(Hersteller.Code,'%1',Belege.Herstellercode);
@@ -106,33 +101,24 @@ IF Belege.FINDFIRST THEN
                Statistik.Herstellername:=Hersteller.Herstellerkurzname;
                Statistik.Kreditor_Nr:=Hersteller."Zugeordnete Kreditorennr.";
              END
-               ELSE Statistik.Herstellername:=Belege.Herstellercode;
+                ELSE Statistik.Herstellername:=Belege.Herstellercode;
 
-    //// Endkunde-Art
+          Artikel.RESET();
+          Artikel.SETFILTER(Artikel."No. 2",'%1',Belege."Artikelnr.");
+          IF Artikel.FINDFIRST THEN Statistik."Artikelnr.":= Artikel."No.";
 
-          Statistik.Endkunde:=Belege.Endkunde;
-          Statistik.Kontakt := Belege.Kontakt;
-
-          IF Belege.Endkunde <> '' THEN
-            BEGIN
-             Contact.RESET();
-             Contact.SETFILTER(Contact."No.",'%1',Belege.Endkunde);
-             IF Contact.FINDFIRST THEN
-               BEGIN
-                 Statistik.Verkäufercode:=Contact."Salesperson Code";
-                 Statistik."Betreuer Innendienst":=Contact."Betreuer Innendienst";
-                 Statistik.Teams:=Contact.Teams;
-                 Statistik.Gebiet:=Contact."Territory Code";
-                 Contact_Rel.RESET();
-                 Contact_Rel.SETFILTER(Contact_Rel."Contact No.",'%1',Contact."No.");
-                 IF Contact_Rel.FINDFIRST THEN
-                   BEGIN
-                     Statistik.Endkunde_deb_nr:=Contact_Rel."No.";
-                   END;
-
-               END;
+          Debitor.RESET();
+          Debitor.SETFILTER(Debitor."No.",'%1',Belege."Debitornr.");
+          IF Debitor.FINDFIRST THEN
+             BEGIN
+               Statistik.Verkäufercode:=Debitor."Salesperson Code";
+               Statistik."Betreuer Innendienst":=Debitor."Betreuer Innendienst";
+               Statistik.Teams:=Debitor.Teams;
+               Statistik.Gebiet:=Debitor."Territory Code";
              END;
+
           Statistik.INSERT;
         END;
+
     UNTIL Belege.NEXT = 0;
   END;
