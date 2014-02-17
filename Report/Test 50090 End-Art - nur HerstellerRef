@@ -7,11 +7,9 @@ IF Belege.FINDFIRST THEN
       anzahl:=0;
       wert:=0;
       Statistik.RESET();
-      Statistik.SETFILTER(Statistik.Art,'%1',Statistik.Art::"Endkunde-Art");
+      Statistik.SETFILTER(Statistik.Art,'%1',Statistik.Art::Hersteller);
       Statistik.SETFILTER(Statistik."Debitornr.",'%1',Belege."Debitornr.");
-      Statistik.SETFILTER(Statistik.Endkunde,'%1',Belege.Endkunde);
-      // Artikel    //Endkunde-Art
-      Statistik.SETFILTER(Statistik."Artikelnr.2",'%1',Belege."Artikelnr.");
+      Statistik.SETFILTER(Statistik.Herstellercode,'%1',Belege.Herstellercode);
       Statistik.SETFILTER(Statistik.Jahr,'%1',gjahr);
       IF Belege.Belegart = Belege.Belegart::Invoice THEN
          BEGIN
@@ -26,43 +24,42 @@ IF Belege.FINDFIRST THEN
 
       IF Statistik.FINDFIRST THEN
         BEGIN
-          CASE quartal OF
-            1: BEGIN; 
-                 Statistik.Q1_Menge:=anzahl+Statistik.Q1_Menge;
-                 Statistik.Q1_Wert:=wert+Statistik.Q1_Wert;
-                 Statistik."Gesamt Menge":=anzahl+Statistik."Gesamt Menge";
-                 Statistik.Gesamt_Umsatz:=wert+Statistik.Gesamt_Umsatz;
-               END;
-            2: BEGIN;
-                 Statistik.Q2_Menge:=anzahl+Statistik.Q2_Menge;
-                 Statistik.Q2_Wert:=wert+Statistik.Q2_Wert;
-                 Statistik."Gesamt Menge":=anzahl+Statistik."Gesamt Menge";
-                 Statistik.Gesamt_Umsatz:=wert+Statistik.Gesamt_Umsatz;
-               END;
-            3: BEGIN;
-                 Statistik.Q3_Menge:=anzahl+Statistik.Q3_Menge;
-                 Statistik.Q3_Wert:=wert+Statistik.Q3_Wert;
-                 Statistik."Gesamt Menge":=anzahl+Statistik."Gesamt Menge";
-                 Statistik.Gesamt_Umsatz:=wert+Statistik.Gesamt_Umsatz;
-               END;
-            4: BEGIN; 
-                 Statistik.Q4_Menge:=anzahl+Statistik.Q4_Menge;
-                 Statistik.Q4_Wert:=wert+Statistik.Q4_Wert;
-                 Statistik."Gesamt Menge":=anzahl+Statistik."Gesamt Menge";
-                 Statistik.Gesamt_Umsatz:=wert+Statistik.Gesamt_Umsatz;
-               END;
-            END;
-          Statistik.Kontakt := Belege.Kontakt;
-          Statistik.MODIFY;
+         CASE quartal OF
+           1: BEGIN; 
+                Statistik.Q1_Menge:=anzahl+Statistik.Q1_Menge;
+                Statistik.Q1_Wert:=wert+Statistik.Q1_Wert;
+                Statistik."Gesamt Menge":=anzahl+Statistik."Gesamt Menge";
+                Statistik.Gesamt_Umsatz:=wert+Statistik.Gesamt_Umsatz;
+              END;
+           2: BEGIN;
+                Statistik.Q2_Menge:=anzahl+Statistik.Q2_Menge;
+                Statistik.Q2_Wert:=wert+Statistik.Q2_Wert;
+                Statistik."Gesamt Menge":=anzahl+Statistik."Gesamt Menge";
+                Statistik.Gesamt_Umsatz:=wert+Statistik.Gesamt_Umsatz;
+              END;
+           3: BEGIN;
+                Statistik.Q3_Menge:=anzahl+Statistik.Q3_Menge;
+                Statistik.Q3_Wert:=wert+Statistik.Q3_Wert;
+                Statistik."Gesamt Menge":=anzahl+Statistik."Gesamt Menge";
+                Statistik.Gesamt_Umsatz:=wert+Statistik.Gesamt_Umsatz;
+              END;
+           4: BEGIN; 
+                Statistik.Q4_Menge:=anzahl+Statistik.Q4_Menge;
+                Statistik.Q4_Wert:=wert+Statistik.Q4_Wert;
+                Statistik."Gesamt Menge":=anzahl+Statistik."Gesamt Menge";
+                Statistik.Gesamt_Umsatz:=wert+Statistik.Gesamt_Umsatz;
+              END;
+           END;
+
+         Statistik.Kontakt := Belege.Kontakt;
+         Statistik.MODIFY;
+
         END
       ELSE
         BEGIN
           Statistik.INIT;
-          Statistik.Art:=Statistik.Art::"Endkunde-Art";
+          Statistik.Art:=Statistik.Art::Hersteller;
           Statistik."Debitornr.":=Belege."Debitornr.";
-
-          // Artikel // Endkunde-Art
-
           Statistik.Jahr:=gjahr;
           CASE quartal OF
             1: BEGIN; 
@@ -91,13 +88,9 @@ IF Belege.FINDFIRST THEN
                END;
             END;
 
-    ///// Endkunde-Art
-          Statistik."Artikelnr.2":=Belege."Artikelnr.";
+          Statistik."Artikelnr.2":='';
           Statistik.Herstellercode := Belege.Herstellercode;
-          
-          Artikel.RESET();
-          Artikel.SETFILTER(Artikel."No. 2",'%1',Belege."Artikelnr.");
-          IF Artikel.FINDFIRST THEN Statistik."Artikelnr.":= Artikel."No.";
+          Statistik.Kontakt := Belege.Kontakt;
 
           Hersteller.RESET();
           Hersteller.SETFILTER(Hersteller.Code,'%1',Belege.Herstellercode);
@@ -108,30 +101,16 @@ IF Belege.FINDFIRST THEN
              END
                ELSE Statistik.Herstellername:=Belege.Herstellercode;
 
-    //// Endkunde-Art
-
-          Statistik.Endkunde:=Belege.Endkunde;
-          Statistik.Kontakt := Belege.Kontakt;
-
-          IF Belege.Endkunde <> '' THEN
-            BEGIN
-             Contact.RESET();
-             Contact.SETFILTER(Contact."No.",'%1',Belege.Endkunde);
-             IF Contact.FINDFIRST THEN
-               BEGIN
-                 Statistik.Verkäufercode:=Contact."Salesperson Code";
-                 Statistik."Betreuer Innendienst":=Contact."Betreuer Innendienst";
-                 Statistik.Teams:=Contact.Teams;
-                 Statistik.Gebiet:=Contact."Territory Code";
-                 Contact_Rel.RESET();
-                 Contact_Rel.SETFILTER(Contact_Rel."Contact No.",'%1',Contact."No.");
-                 IF Contact_Rel.FINDFIRST THEN
-                   BEGIN
-                     Statistik.Endkunde_deb_nr:=Contact_Rel."No.";
-                   END;
-
-               END;
+          Debitor.RESET();
+          Debitor.SETFILTER(Debitor."No.",'%1',Belege."Debitornr.");
+          IF Debitor.FINDFIRST THEN
+             BEGIN
+               Statistik.Verkäufercode:=Debitor."Salesperson Code";
+               Statistik."Betreuer Innendienst":=Debitor."Betreuer Innendienst";
+               Statistik.Teams:=Debitor.Teams;
+               Statistik.Gebiet:=Debitor."Territory Code";
              END;
+
           Statistik.INSERT;
         END;
     UNTIL Belege.NEXT = 0;
