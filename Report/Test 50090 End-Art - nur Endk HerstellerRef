@@ -1,17 +1,17 @@
 Belege.RESET;
 Belege.SETFILTER(Belege.Belegart,'%1|%2',Belege.Belegart::Invoice,Belege.Belegart::"Credit Memo");
-Belege.SETFILTER(Belege.Belegdatum,Datumsfilter);
+Belege.SETFILTER(Belege.Belegdatum,Datumsfilter);        /// Prüfen
 IF Belege.FINDFIRST THEN
   BEGIN
     REPEAT
       anzahl:=0;
       wert:=0;
       Statistik.RESET();
-      Statistik.SETFILTER(Statistik.Art,'%1',Statistik.Art::"Endkunde-Art");
+      Statistik.SETFILTER(Statistik.Art,'%1',Statistik.Art::"Endkunde-Hersteller");
       Statistik.SETFILTER(Statistik."Debitornr.",'%1',Belege."Debitornr.");
       Statistik.SETFILTER(Statistik.Endkunde,'%1',Belege.Endkunde);
-      // Artikel    //Endkunde-Art
-      Statistik.SETFILTER(Statistik."Artikelnr.2",'%1',Belege."Artikelnr.");
+      // Herstellercode    //Endkunde-Art
+      Statistik.SETFILTER(Statistik.Herstellercode,'%1',Belege.Herstellercode);
       Statistik.SETFILTER(Statistik.Jahr,'%1',gjahr);
       IF Belege.Belegart = Belege.Belegart::Invoice THEN
          BEGIN
@@ -58,10 +58,11 @@ IF Belege.FINDFIRST THEN
       ELSE
         BEGIN
           Statistik.INIT;
-          Statistik.Art:=Statistik.Art::"Endkunde-Art";
+          Statistik.Art:=Statistik.Art::"Endkunde-Hersteller";
           Statistik."Debitornr.":=Belege."Debitornr.";
+          Statistik."Artikelnr.2" := '';
 
-          // Artikel // Endkunde-Art
+          // Artikel // Endkunde-Hersteller
 
           Statistik.Jahr:=gjahr;
           CASE quartal OF
@@ -91,13 +92,9 @@ IF Belege.FINDFIRST THEN
                END;
             END;
 
-    ///// Endkunde-Art
-          Statistik."Artikelnr.2":=Belege."Artikelnr.";
+    ///// Endkunde-Hersteller
           Statistik.Herstellercode := Belege.Herstellercode;
           
-          Artikel.RESET();
-          Artikel.SETFILTER(Artikel."No. 2",'%1',Belege."Artikelnr.");
-          IF Artikel.FINDFIRST THEN Statistik."Artikelnr.":= Artikel."No.";
 
           Hersteller.RESET();
           Hersteller.SETFILTER(Hersteller.Code,'%1',Belege.Herstellercode);
@@ -108,7 +105,7 @@ IF Belege.FINDFIRST THEN
              END
                ELSE Statistik.Herstellername:=Belege.Herstellercode;
 
-    //// Endkunde-Art
+    //// Endkunde-Hersteller
 
           Statistik.Endkunde:=Belege.Endkunde;
           Statistik.Kontakt := Belege.Kontakt;
