@@ -3451,7 +3451,7 @@ AUzeile.RESET;
 AUzeile.SETFILTER(AUzeile."Document No.",'%1',AUnr);
 AUzeile.SETFILTER(Type,'%1',AUzeile.Type :: Item);
 AUzeile.SETFILTER(AUzeile."Qty. to Ship",'>%1',0);
-AUzeile.SETFILTER("Manufacturer Code",'%1|%2|%3|%4','53','57','59','98');
+AUzeile.SETFILTER("Manufacturer Code",'%1|%2|%3|%4','53','57','59','98','5710');
 IF AUzeile.FINDFIRST THEN
   BEGIN
     REPEAT
@@ -3553,7 +3553,7 @@ IF AUzeile.FINDFIRST THEN
 
       IF (Artikel."Software Upgrade Protection" = TRUE)  THEN
         BEGIN
-          IF (Artikel."Manufacturer Code" = '57') AND (AUzeile."Qty. to Ship" > 1) THEN
+          IF ((Artikel."Manufacturer Code" = '57') OR (Artikel."Manufacturer Code" = '5710')) AND (AUzeile."Qty. to Ship" > 1) THEN
             ERROR(Text112,AUzeile.FIELDCAPTION("Qty. to Ship"),Artikel.Artikelgruppe,AUzeile."No.");
 
           ChampZuordnungHolen.RESET;
@@ -3655,7 +3655,7 @@ IF AUzeile.FINDFIRST THEN
 
                 IF ChampZuordnungHolen."Menge kalk." = 0 THEN
                   ERROR(Text120,AUzeile."No.",AUzeile."Line No.",ChampZuordnungHolen.FIELDCAPTION("Menge kalk."));
-                  
+
                 //***************************************************************************************************
                 //            Prüft auch darauf, ob nach der Buchung nur genau ein aktives Basisgerät vorliegt
                 //***************************************************************************************************
@@ -3772,11 +3772,11 @@ IF AUzeile.FINDFIRST THEN
                           menge_auswahl_ges := menge_auswahl_ges + HoleTempLizenzTab.Menge;
 
                         UNTIL HoleTempLizenzTab.NEXT = 0;
+                      END;
 
-                        IF menge_auswahl_pos <> menge_champ_kalk_pos THEN
-                          ERROR(Text116,AUzeile."No.",AUzeile."Line No.");
+                    IF menge_auswahl_pos <> menge_champ_kalk_pos THEN
+                      ERROR(Text116,AUzeile."No.",AUzeile."Line No.");
 
-                     END;
                   END;
               UNTIL ChampZuordnungHolen.NEXT = 0;
 
@@ -3787,14 +3787,14 @@ IF AUzeile.FINDFIRST THEN
         END;
 
     UNTIL AUzeile.NEXT = 0;
-    
+
     //***************************************************************************************************
     //                                       12.02.2014-ST TOPAS
     //   DCs der Service Artikel werden bei Abweichungen gegenüber der Service Preisliste aktualisiert
     //***************************************************************************************************
 
     AktualisiereServiceDC(AUnr);
-    
+
   END;
 
 PrüfeOVTNDA(Belegnr : Code[20];Belegart : Option)
@@ -3833,7 +3833,7 @@ IF Belegzeile.FINDFIRST THEN
           MESSAGE(Text113,Belegzeile."No.",Belegzeile."Line No.");
       END;
   UNTIL Belegzeile.NEXT = 0;
-  
+
 AktualisiereServiceDC(AUnr : Code[20])
 //***************************************************************************************************
 //             NEU: 12.02.2014-ST Aktualisiert die DCs aller zu liefernden Service Artikel
@@ -3846,7 +3846,7 @@ AUzeile.RESET;
 AUzeile.SETFILTER(AUzeile."Document No.",'%1',AUnr);
 AUzeile.SETFILTER(Type,'%1',AUzeile.Type :: Item);
 AUzeile.SETFILTER(AUzeile."Qty. to Ship",'>%1',0);
-AUzeile.SETFILTER("Manufacturer Code",'%1|%2|%3|%4','53','57','59','98');
+AUzeile.SETFILTER("Manufacturer Code",'%1|%2|%3|%4','53','57','59','98','5710');
 IF AUzeile.FINDFIRST THEN
   BEGIN
     REPEAT
