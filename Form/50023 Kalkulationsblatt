@@ -666,7 +666,8 @@ IF Rec.HASFILTER THEN
     ChampRelaDoc.SETFILTER("Zeilennr.",'%1',"Zeilennr.");
     IF ChampRelaDoc.FINDFIRST THEN
       REPEAT
-        IF (ChampRelaDoc.Basisgerät = TRUE) AND (ChampRelaDoc."Menge kalk." > 1) THEN
+        IF (Pruefung_ignorieren(ChampRelaDoc."SUP Artikelnr.",ChampRelaDoc."Geräte Artikelnr.",ChampRelaDoc.Basisgerät) = FALSE)
+        AND (ChampRelaDoc."Menge kalk." > 1) THEN
           ERROR(Text001);
 
         ChampRelaDoc.TESTFIELD(Laufzeit);
@@ -796,18 +797,6 @@ TESTFIELD("Debitornr.");
 TESTFIELD("Menge kalk.");
 TESTFIELD("Geräte Artikelnr.");
 
-{durch siehe unten ersetzt  , evtl. löschen
-//Verhindert jegliche Ausführungen oder Änderungen, solange noch kein Basisgerät hinterlegt ist
-ChampRelaDoc.RESET;
-ChampRelaDoc.SETCURRENTKEY(Art,"Nr.","Zeilennr.",Gruppierung);
-ChampRelaDoc.SETFILTER(Art,'%1',ChampRelaDoc.Art::"SUP-AU");
-ChampRelaDoc.SETFILTER("Nr.",'%1',"Nr.");
-ChampRelaDoc.SETFILTER("Zeilennr.",'%1',"Zeilennr.");
-ChampRelaDoc.SETFILTER(Basisgerät,'%1',TRUE);
-IF NOT ChampRelaDoc.FINDFIRST THEN
-  ERROR(Text010);
-}
-
 //***************************************************************************************************
 //                          Es muss ein System Basisgeräte vorhanden sein
 //              Ausnahme: Alle Champ Kalkulationszeilen haben eine Wartungsvertragsnr.
@@ -836,6 +825,9 @@ ChampRelaDoc.SETFILTER("Zeilennr.",'%1',"Zeilennr.");
 ChampRelaDoc.SETFILTER("Nachträgliche Service Order",'%1',TRUE);
 IF ChampRelaDoc.FINDFIRST THEN
   REPEAT
+    IF (Pruefung_ignorieren(ChampRelaDoc."SUP Artikelnr.",ChampRelaDoc."Geräte Artikelnr.",ChampRelaDoc.Basisgerät) = FALSE)
+    AND (ChampRelaDoc."Menge kalk." > 1)  THEN
+      ERROR(Text001);
     ÖffneLizenzTab.RESET;
     ÖffneLizenzTab.ACSLizenzenHinzu(ChampRelaDoc."SUP Artikelnr.",ChampRelaDoc."Belegnr.",ChampRelaDoc."Belegzeilennr.",
                    ChampRelaDoc."Menge kalk.",ChampRelaDoc."Debitornr.",ChampRelaDoc."Nr.",ChampRelaDoc."Zeilennr.");
@@ -856,18 +848,6 @@ TESTFIELD("Debitornr.");
 TESTFIELD("Menge kalk.");
 TESTFIELD("Geräte Artikelnr.");
 
-{durch siehe unten ersetzt  , evtl. löschen
-//Verhindert jegliche Ausführungen oder Änderungen, solange noch kein Basisgerät hinterlegt ist
-ChampRelaDoc.RESET;
-ChampRelaDoc.SETCURRENTKEY(Art,"Nr.","Zeilennr.",Gruppierung);
-ChampRelaDoc.SETFILTER(Art,'%1',ChampRelaDoc.Art::"SUP-AU");
-ChampRelaDoc.SETFILTER("Nr.",'%1',"Nr.");
-ChampRelaDoc.SETFILTER("Zeilennr.",'%1',"Zeilennr.");
-ChampRelaDoc.SETFILTER(Basisgerät,'%1',TRUE);
-IF NOT ChampRelaDoc.FINDFIRST THEN
-  ERROR(Text010);
-}
-
 //***************************************************************************************************
 //                          Es muss ein System Basisgeräte vorhanden sein
 //              Ausnahme: Alle Champ Kalkulationszeilen haben eine Wartungsvertragsnr.
@@ -896,6 +876,9 @@ ChampRelaDoc.SETFILTER("Zeilennr.",'%1',"Zeilennr.");
 ChampRelaDoc.SETFILTER("Nachträgliche Service Order",'%1',TRUE);
 IF ChampRelaDoc.FINDFIRST THEN
   REPEAT
+    IF (Pruefung_ignorieren(ChampRelaDoc."SUP Artikelnr.",ChampRelaDoc."Geräte Artikelnr.",ChampRelaDoc.Basisgerät) = FALSE)
+    AND (ChampRelaDoc."Menge kalk." > 1)  THEN
+      ERROR(Text001);
     ÖffneLizenzTab.RESET;
     ÖffneLizenzTab.ACSLizenzenHinzu(ChampRelaDoc."SUP Artikelnr.",ChampRelaDoc."Belegnr.",ChampRelaDoc."Belegzeilennr.",
                    ChampRelaDoc."Menge kalk.",ChampRelaDoc."Debitornr.",ChampRelaDoc."Nr.",ChampRelaDoc."Zeilennr.");
@@ -1334,3 +1317,14 @@ IF Rec.HASFILTER THEN
         DemolistRelaDoc.INSERT(TRUE);
       END;
   END;
+
+Pruefung_ignorieren(Service_Artikelnr : Code[20];Geräte_Artikelnr : Code[20];Basis : Boolean) : Boolean
+Geräte_Artikel.GET(Geräte_Artikelnr);
+Service_Artikel.GET(Service_Artikelnr);
+
+IF (Basis = TRUE) AND ((Service_Artikel.Artikelgruppe = 'CHAMPS') OR
+(Service_Artikel.Artikelgruppe = 'ACHAT') OR (Service_Artikel.Artikelgruppe = 'ACTS'))
+AND (Geräte_Artikel.Serviceklassifizierung <> 'SYSTEM FLAT') THEN
+  EXIT(FALSE)
+ELSE
+  EXIT(TRUE);
