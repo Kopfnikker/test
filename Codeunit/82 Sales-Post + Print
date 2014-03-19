@@ -18,18 +18,22 @@ WITH SalesHeader DO BEGIN
       BEGIN
 
         //TOPAS 23.09.2011-ST CHAMPS
-        TOPAS_Buchungen_prüfen := TRUE;
         AUnr := SalesHeader."No.";
         //TOPAS Ende
 
         Selection := STRMENU(Text000,3);
         IF Selection = 0 THEN
           EXIT;
+
         Ship := Selection IN [1,3];
         Invoice := Selection IN [2,3];
         //TOPAS 09.09.09-ST
         IF (Selection IN [3,3]) AND (SalesHeader."Location Code" = 'KONSI') THEN
           ERROR(Text100);
+
+        IF (Selection IN [1,3]) OR (Selection IN [3,3]) THEN
+          TOPAS_Buchungen_prüfen := TRUE;
+
         // Zusatz Kreditlimitüberprüfung
         IF (Selection IN [2,3]) OR (Selection IN [3,3]) THEN
           BEGIN
@@ -91,7 +95,7 @@ WITH SalesHeader DO BEGIN
       Packkontrolle.HolePackDaten(AUnr);
 
       LizenzTab.RESET;
-      LizenzTab.CreateSystemFromSalesHeader(AUnr);
+      LizenzTab.CreateSystemFromSalesHeader(AUnr,FALSE);
       LizenzTab.CreateChampFromSalesHeader(AUnr,FALSE);
     END;
   //TOPAS Ende
