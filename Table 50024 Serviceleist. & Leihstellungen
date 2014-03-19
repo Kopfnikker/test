@@ -2265,8 +2265,7 @@ IF Vkliefkopf.FINDLAST THEN
                           UNTIL HoleTempLizenzTab.NEXT = 0;
                         END
                       ELSE
-                        //######## Noch zu definieren #############################
-                        ERROR('');
+                        ERROR(Text033);
 
                         HoleTempLizenzTab.RESET;
                         HoleTempLizenzTab.SETFILTER(Art,'%1',HoleTempLizenzTab.Art :: Temporär);
@@ -2451,10 +2450,7 @@ IF Vkliefkopf.FINDLAST THEN
                           UNTIL HoleTempLizenzTab.NEXT = 0;
                         END
                       ELSE
-                        //######## Noch zu definieren #############################
-                        BEGIN
-                          //ERROR('');
-                        END;
+                        ERROR(Text033);
 
                       HoleTempLizenzTab.RESET;
                       HoleTempLizenzTab.SETFILTER(Art,'%1',HoleTempLizenzTab.Art :: Temporär);
@@ -2980,15 +2976,22 @@ IF (Artikel."Software Upgrade Protection" = TRUE) THEN
       BEGIN
         IF Feld = 'DC' THEN
           BEGIN
-            IF (Champs."Laufzeit in Jahren" = 3) AND (ACTS = FALSE) AND (ACHAT = FALSE) THEN
-              EXIT(ROUND((((Champs.MSRP*0.72)*Champs."Laufzeit in Jahren")*(kalk_laufzeit / v_laufzeit)) * (0.8),rundgs_faktor))
+            v_service_laufzeit := kalk_laufzeit DIV 12;
+            CASE v_service_laufzeit OF
+              1 : champs_discount := 1;
+              2 : champs_discount := 0.95; // -5%
+              3 : champs_discount := 0.88; // -12%
+              4 : champs_discount := 0.84; // -16%
+              5..100 : champs_discount := 0.8; // -20%
+            END;
+
+            IF (ACTS = FALSE) AND (ACHAT = FALSE) THEN
+              EXIT((ROUND(((Champs.MSRP*0.72)*(kalk_laufzeit / v_laufzeit)) * (champs_discount),rundgs_faktor))
+                    *spezial_discount)
             ELSE
               IF (ACHAT = TRUE) OR (ACTS = TRUE) THEN
                 EXIT((ROUND(((Champs.MSRP*0.8)*Champs."Laufzeit in Jahren")*(kalk_laufzeit / v_laufzeit),rundgs_faktor))
-                      *spezial_discount)
-              ELSE
-                EXIT((ROUND(((Champs.MSRP*0.72)*Champs."Laufzeit in Jahren")*(kalk_laufzeit / v_laufzeit),rundgs_faktor))
-                      *spezial_discount)
+                      *spezial_discount);
           END;
 
         IF Feld = 'MSRP' THEN
