@@ -4466,7 +4466,7 @@ IF ("Blanket Order No." <> '') AND ("Blanket Order Line No." <> 0)  THEN
       END;
   END;
 
-Gen_Champs_DC("SUP Artikelnr" : Code[20];"Basis Artikelnr" : Code[20];Laufzeit : Integer;Runden : Boolean;Währung : Code[20]) : Decimal
+Gen_Service_DC("SUP Artikelnr" : Code[20];"Basis Artikelnr" : Code[20];Laufzeit : Integer;Runden : Boolean;Währung : Code[20]) : Decimal
 //***************************************************************************************************
 //              TOPAS 26.07.2011-ST  Generiert den DC für den jeweiligen Champ Artikel
 //              TOPAS 10.01.2014-ST  Nun auch für ACTS
@@ -4515,16 +4515,27 @@ IF (Artikel."Software Upgrade Protection" = TRUE) THEN
     Champs.SETFILTER(Währungscode,'%1',Währung);
     IF Champs.FINDFIRST THEN
       BEGIN
+
         IF Champs."Update letzte Preisliste" = FALSE THEN
           MESSAGE(Text120,FORMAT(Champs.Art),"Basis Artikelnr");
-        IF (Champs."Laufzeit in Jahren" = 3) AND (Artikel.Artikelgruppe <> 'ACTS')
-        AND (Artikel.Artikelgruppe <> 'ACHAT')  THEN
-          EXIT(ROUND((((Champs.MSRP*0.72) * Champs."Laufzeit in Jahren") * (Laufzeit/v_laufzeit))*(0.8),rundgs_faktor))
+
+        v_service_laufzeit := Laufzeit DIV 12;
+        CASE v_service_laufzeit OF
+          1 : champs_discount := 1;
+          2 : champs_discount := 0.95; // -5%
+          3 : champs_discount := 0.88; // -12%
+          4 : champs_discount := 0.84; // -16%
+          5..100 : champs_discount := 0.8; // -20%
+        END;
+
+        IF (Artikel.Artikelgruppe <> 'ACTS') AND (Artikel.Artikelgruppe <> 'ACHAT')  THEN
+          EXIT((ROUND(((Champs.MSRP*0.72) * (Laufzeit/v_laufzeit))*(champs_discount),rundgs_faktor))
+          *spezial_discount)
         ELSE
           IF (Artikel.Artikelgruppe = 'ACHAT') OR (Artikel.Artikelgruppe = 'ACTS') THEN
-            EXIT((ROUND(((Champs.MSRP*0.8)*Champs."Laufzeit in Jahren")*(Laufzeit/v_laufzeit),rundgs_faktor))*spezial_discount)
-          ELSE
-            EXIT((ROUND(((Champs.MSRP*0.72)*Champs."Laufzeit in Jahren")*(Laufzeit/v_laufzeit),rundgs_faktor))*spezial_discount);
+            EXIT((ROUND(((Champs.MSRP*0.8)*Champs."Laufzeit in Jahren")*(Laufzeit/v_laufzeit),rundgs_faktor))
+            *spezial_discount);
+
       END
     ELSE
       BEGIN
@@ -4551,7 +4562,7 @@ IF (Artikel."Software Upgrade Protection" = TRUE) THEN
       END;
   END;
 
-Gen_Champs_VK("SUP Artikelnr" : Code[20];"Basis Artikelnr" : Code[20];Laufzeit : Integer;Belegnr : Code[20];Zeilennr : Integer;Fremderw
+Gen_Service_VK("SUP Artikelnr" : Code[20];"Basis Artikelnr" : Code[20];Laufzeit : Integer;Belegnr : Code[20];Zeilennr : Integer;Fremder
 //***************************************************************************************************
 //  TOPAS 26.07.2011-ST  Generiert einen VK-Preis für einen Champ Artikel, wenn sich die zugewiesene
 //             Position auf eine gültige Auftrags- oder Lieferscheinposition bezieht
@@ -4891,7 +4902,9 @@ IF (ACTS = TRUE) OR (ACHAT = TRUE) THEN
                EXIT(0.58 * ((FindMSRPPrice.MSRP * FindMSRPPrice."Laufzeit in Jahren")))
              ELSE
                ERROR(Text126);
-        END;
+        END
+      ELSE
+        ERROR(Text127,Artikelnr);
     END;
   END;
 
