@@ -1,3 +1,4 @@
+
 Documentation()
 # TOPAS 01.03.2011-ST System wurde um die SUP Software Upgrade Protection erweitert
 # TOPAS 26.08.2011-ST Neues CHAMPS System released, erweitertes SUP Modul
@@ -218,25 +219,25 @@ Urspr. Buchungsdatum - OnValidate()
 
 Urspr. Buchungsdatum - OnLookup()
 
-Champ Artikelnr. - OnValidate()
+Service Artikelnr. - OnValidate()
 
-Champ Artikelnr. - OnLookup()
+Service Artikelnr. - OnLookup()
 
 Hauptwartungsvertragsnr. - OnValidate()
 
 Hauptwartungsvertragsnr. - OnLookup()
 
-Champ DC - OnValidate()
+Service DC - OnValidate()
 
-Champ DC - OnLookup()
+Service DC - OnLookup()
 
-Champ MSRP - OnValidate()
+Service MSRP - OnValidate()
 
-Champ MSRP - OnLookup()
+Service MSRP - OnLookup()
 
-Champ Währungscode - OnValidate()
+Service Währungscode - OnValidate()
 
-Champ Währungscode - OnLookup()
+Service Währungscode - OnLookup()
 
 Board ini - OnValidate()
 
@@ -1976,7 +1977,7 @@ IF Vkliefkopf.FINDLAST THEN
                                        LizenzTab.Passwort := LizenzTab.Passwort_generieren(LizenzTab."Artikelnr."
                                        ,LizenzTab.Benutzername,LizenzTab."Seriennr.",LizenzTab.Lizenzdatum);
                                        IF LizenzTab."SUP Artikelnr." = 'CHAMPS-RE_INSTATE#01' THEN
-                                         LizenzTab."Champ Artikelnr." := 'CHAMPS-RE_INSTATEMENT_FEE';
+                                         LizenzTab."Service Artikelnr." := 'CHAMPS-RE_INSTATEMENT_FEE';
                                        LizenzTab."Auftragsnr." := Vkliefzeile."Order No.";
                                        LizenzTab."Auftragszeilennr." := Vkliefzeile."Order Line No.";
                                        LizenzTab.Ursprungsland := SeriennrVerfolgung.Ursprungsland;
@@ -1991,13 +1992,13 @@ IF Vkliefkopf.FINDLAST THEN
                                        IF CHAMPZuordnungHolen.Ablaufdatum <> 0D THEN
                                          LizenzTab."Ablaufdatum Serviceleistung" := CHAMPZuordnungHolen.Ablaufdatum;
 
-                                       LizenzTab."Champ Artikelnr." := ChampArtikelnrErmitteln(HoleLiefZeile."No.",
+                                       LizenzTab."Service Artikelnr." := ChampArtikelnrErmitteln(HoleLiefZeile."No.",
                                                                                                Vkliefzeile."No.");
-                                       LizenzTab."Champ DC" := ChampPreiseNeuKalkulieren(HoleLiefZeile."No.",Vkliefzeile."No.",
+                                       LizenzTab."Service DC" := ChampPreiseNeuKalkulieren(HoleLiefZeile."No.",Vkliefzeile."No.",
                                                                              CHAMPZuordnungHolen.Laufzeit,'DC',FALSE,ek_Währung);
-                                       LizenzTab."Champ MSRP" := ChampPreiseNeuKalkulieren(HoleLiefZeile."No.",Vkliefzeile."No.",
+                                       LizenzTab."Service MSRP" := ChampPreiseNeuKalkulieren(HoleLiefZeile."No.",Vkliefzeile."No.",
                                                                              CHAMPZuordnungHolen.Laufzeit,'MSRP',FALSE,ek_Währung);
-                                       LizenzTab."Champ Währungscode" := ek_Währung;
+                                       LizenzTab."Service Währungscode" := ek_Währung;
 
                                        //Zuordnung der Champ Position in den entsprechenden Wartungs- bzw. Systemvertrag
                                        SystemPos.RESET;
@@ -2009,6 +2010,10 @@ IF Vkliefkopf.FINDLAST THEN
                                        SystemPos.SETFILTER("Seriennr.",'%1', SeriennrVerfolgung."Serial No.");
                                        IF SystemPos.FINDFIRST THEN
                                          BEGIN
+                                           Wartung.RESET;
+                                           Wartung.SETFILTER("Wartungsvertragsnr.",'%1',SystemPos."Wartungsvertragsnr.");
+                                           IF Wartung.FINDFIRST THEN
+                                             EndkundenInfoUpdate(Vkliefkopf,Wartung);
                                            Wartung.RESET;
                                            Wartung.SETFILTER("Wartungsvertragsnr.",'%1',SystemPos."Wartungsvertragsnr.");
                                            IF Wartung.FINDFIRST THEN
@@ -2153,7 +2158,7 @@ IF Vkliefkopf.FINDLAST THEN
                                                       LizenzTab.Benutzername,LizenzTab."Seriennr.",LizenzTab.Lizenzdatum);
 
                                 IF LizenzTab."SUP Artikelnr." = 'CHAMPS-RE_INSTATE#01' THEN
-                                  LizenzTab."Champ Artikelnr." := 'CHAMPS-RE_INSTATEMENT_FEE';
+                                  LizenzTab."Service Artikelnr." := 'CHAMPS-RE_INSTATEMENT_FEE';
 
                                 LizenzTab."Urspr. Lieferscheinnr." := CHAMPZuordnungHolen."Belegnr.";
                                 LizenzTab."Urspr. Lieferscheinzeilennr." := CHAMPZuordnungHolen."Belegzeilennr.";
@@ -2167,12 +2172,12 @@ IF Vkliefkopf.FINDLAST THEN
                                 IF CHAMPZuordnungHolen.Ablaufdatum <> 0D THEN
                                   LizenzTab."Ablaufdatum Serviceleistung" := CHAMPZuordnungHolen.Ablaufdatum;
 
-                                LizenzTab."Champ Artikelnr." := ChampArtikelnrErmitteln(LizenzTab."Artikelnr.",Vkliefzeile."No.");
-                                LizenzTab."Champ DC" := ChampPreiseNeuKalkulieren(LizenzTab."Artikelnr.",Vkliefzeile."No.",
+                                LizenzTab."Service Artikelnr." := ChampArtikelnrErmitteln(LizenzTab."Artikelnr.",Vkliefzeile."No.");
+                                LizenzTab."Service DC" := ChampPreiseNeuKalkulieren(LizenzTab."Artikelnr.",Vkliefzeile."No.",
                                                                       CHAMPZuordnungHolen.Laufzeit,'DC',FALSE,ek_Währung);
-                                LizenzTab."Champ MSRP" := ChampPreiseNeuKalkulieren(LizenzTab."Artikelnr.",Vkliefzeile."No.",
+                                LizenzTab."Service MSRP" := ChampPreiseNeuKalkulieren(LizenzTab."Artikelnr.",Vkliefzeile."No.",
                                                                       CHAMPZuordnungHolen.Laufzeit,'MSRP',FALSE,ek_Währung);
-                                LizenzTab."Champ Währungscode" := ek_Währung;
+                                LizenzTab."Service Währungscode" := ek_Währung;
 
                                 //Zuordnung der Champ Position in den entsprechenden Wartungs- bzw. Systemvertrag
                                 SystemPos.RESET;
@@ -2184,6 +2189,10 @@ IF Vkliefkopf.FINDLAST THEN
                                 SystemPos.SETFILTER("Seriennr.",'%1',HoleTempLizenzTab."Seriennr.");
                                 IF SystemPos.FINDFIRST THEN
                                   BEGIN
+                                   Wartung.RESET;
+                                   Wartung.SETFILTER("Wartungsvertragsnr.",'%1',SystemPos."Wartungsvertragsnr.");
+                                   IF Wartung.FINDFIRST THEN
+                                     EndkundenInfoUpdate(Vkliefkopf,Wartung);
                                     Wartung.RESET;
                                     Wartung.SETFILTER("Wartungsvertragsnr.",'%1',SystemPos."Wartungsvertragsnr.");
                                     IF Wartung.FINDFIRST THEN
@@ -2340,7 +2349,7 @@ IF Vkliefkopf.FINDLAST THEN
                                 LizenzTab.Passwort := LizenzTab.Passwort_generieren(LizenzTab."Artikelnr.",
                                                       LizenzTab.Benutzername,LizenzTab."Seriennr.",LizenzTab.Lizenzdatum);
                                 IF LizenzTab."SUP Artikelnr." = 'CHAMPS-RE_INSTATE#01' THEN
-                                  LizenzTab."Champ Artikelnr." := 'CHAMPS-RE_INSTATEMENT_FEE';
+                                  LizenzTab."Service Artikelnr." := 'CHAMPS-RE_INSTATEMENT_FEE';
                                 LizenzTab."Urspr. Lieferscheinnr." := HoleTempLizenzTab."Nr.";
                                 LizenzTab."Urspr. Lieferscheinzeilennr." := HoleTempLizenzTab."Belegzeilennr.";
                                 Artikel.GET(LizenzTab."Artikelnr.");
@@ -2351,12 +2360,12 @@ IF Vkliefkopf.FINDLAST THEN
                                 IF CHAMPZuordnungHolen.Ablaufdatum <> 0D THEN
                                   LizenzTab."Ablaufdatum Serviceleistung" := CHAMPZuordnungHolen.Ablaufdatum;
 
-                                LizenzTab."Champ Artikelnr." := ChampArtikelnrErmitteln(LizenzTab."Artikelnr.",Vkliefzeile."No.");
-                                LizenzTab."Champ DC" := ChampPreiseNeuKalkulieren(LizenzTab."Artikelnr.",Vkliefzeile."No.",
+                                LizenzTab."Service Artikelnr." := ChampArtikelnrErmitteln(LizenzTab."Artikelnr.",Vkliefzeile."No.");
+                                LizenzTab."Service DC" := ChampPreiseNeuKalkulieren(LizenzTab."Artikelnr.",Vkliefzeile."No.",
                                                                       CHAMPZuordnungHolen.Laufzeit,'DC',FALSE,ek_Währung);
-                                LizenzTab."Champ MSRP" := ChampPreiseNeuKalkulieren(LizenzTab."Artikelnr.",Vkliefzeile."No.",
+                                LizenzTab."Service MSRP" := ChampPreiseNeuKalkulieren(LizenzTab."Artikelnr.",Vkliefzeile."No.",
                                                                       CHAMPZuordnungHolen.Laufzeit,'MSRP',FALSE,ek_Währung);
-                                LizenzTab."Champ Währungscode" := ek_Währung;
+                                LizenzTab."Service Währungscode" := ek_Währung;
 
                                 //Zuordnung der Champ Position in den entsprechenden Wartungs- bzw. Systemvertrag
                                 SystemPos.RESET;
@@ -2369,6 +2378,10 @@ IF Vkliefkopf.FINDLAST THEN
                                 SystemPos.SETFILTER(Fremderwerb,'%1',TRUE);
                                 IF SystemPos.FINDFIRST THEN
                                   BEGIN
+                                   Wartung.RESET;
+                                   Wartung.SETFILTER("Wartungsvertragsnr.",'%1',SystemPos."Wartungsvertragsnr.");
+                                   IF Wartung.FINDFIRST THEN
+                                     EndkundenInfoUpdate(Vkliefkopf,Wartung);
                                     Wartung.RESET;
                                     Wartung.SETFILTER("Wartungsvertragsnr.",'%1',SystemPos."Wartungsvertragsnr.");
                                     IF Wartung.FINDFIRST THEN
@@ -3020,3 +3033,19 @@ IF ServicePos.FINDFIRST THEN
   END;
 
 EXIT(FALSE);
+
+EndkundenInfoUpdate(Liefkopf : Record "Sales Shipment Header";Wartung : Record Wartungsvertrag)
+WITH Wartung DO BEGIN
+  IF (Liefkopf.Endkunde <> '') AND ((Endkunde = '') OR (("Endkunde Ort" = '') AND ("Endkunde E-Mail" = ''))) THEN
+    BEGIN
+      Wartung.Endkunde := Liefkopf.Endkunde;
+      Wartung."Endkunde Adresse" := Liefkopf."Endkunde Adresse";
+      Wartung."Endkunde PLZ-Code" := Liefkopf."Endkunde PLZ-Code";
+      Wartung."Endkunde Ort"  := Liefkopf."Endkunde Ort";
+      Wartung."Endkunde Land" := Liefkopf."Endkunde Land";
+      Wartung."Endkunde Kontakt" := Liefkopf."Endkunde Kontakt";
+      Wartung."Endkunde Telefonnr." := Liefkopf."Endkunde Telefonnr.";
+      Wartung."Endkunde E-Mail" := Liefkopf."Endkunde E-Mail";
+      Wartung.MODIFY(TRUE);
+    END;
+END;
