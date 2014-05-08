@@ -684,13 +684,13 @@ IF Rec.HASFILTER THEN
               //CHAMPS bezieht sich auf Auftrag
               BEGIN
                 EVALUATE(v_laufzeit,COPYSTR(ChampRelaDoc.Laufzeit,1,STRPOS(ChampRelaDoc.Laufzeit,'M')-1));
-                champ_price_einzeln := "AU-Zeile".Gen_Champs_VK(ChampRelaDoc."SUP Artikelnr.",
+                champ_price_einzeln := "AU-Zeile".Gen_Service_VK(ChampRelaDoc."SUP Artikelnr.",
                 ChampRelaDoc."Geräte Artikelnr.",v_laufzeit,ChampRelaDoc."Belegnr.",ChampRelaDoc."Belegzeilennr.",
                 ChampRelaDoc.Fremderwerb,ChampRelaDoc.Basisgerät,FALSE,kalk_prozentsatz);
                 ChampRelaDoc."Service VK-Preis einzeln" := champ_price_einzeln;
                 ChampRelaDoc."Service VK-Preis Zeilenbetrag" := champ_price_einzeln * ChampRelaDoc."Menge kalk.";
                 champ_price_au := champ_price_au + (ChampRelaDoc."Menge kalk." * champ_price_einzeln);
-                champ_dc_einzeln := "AU-Zeile".Gen_Champs_DC(ChampRelaDoc."SUP Artikelnr.",ChampRelaDoc."Geräte Artikelnr.",
+                champ_dc_einzeln := "AU-Zeile".Gen_Service_DC(ChampRelaDoc."SUP Artikelnr.",ChampRelaDoc."Geräte Artikelnr.",
                 v_laufzeit,FALSE,Belegzeile.Einkaufswährungscode);
                 champ_dc_au := champ_dc_au + (ChampRelaDoc."Menge kalk." * champ_dc_einzeln);
                 ChampRelaDoc."Service DC einzeln" := champ_dc_einzeln;
@@ -713,13 +713,13 @@ IF Rec.HASFILTER THEN
                   BEGIN
                     EVALUATE(v_laufzeit,COPYSTR(ChampRelaDoc.Laufzeit,1,STRPOS(ChampRelaDoc.Laufzeit,'M')-1));
                     //Funktion im Lieferschein einbauen???
-                    champ_price_einzeln := "AU-Zeile".Gen_Champs_VK(ChampRelaDoc."SUP Artikelnr.",
+                    champ_price_einzeln := "AU-Zeile".Gen_Service_VK(ChampRelaDoc."SUP Artikelnr.",
                     ChampRelaDoc."Geräte Artikelnr.",v_laufzeit,ChampRelaDoc."Belegnr.",ChampRelaDoc."Belegzeilennr.",
                     ChampRelaDoc.Fremderwerb,ChampRelaDoc.Basisgerät,FALSE,kalk_prozentsatz);
                     ChampRelaDoc."Service VK-Preis einzeln" := champ_price_einzeln;
                     ChampRelaDoc."Service VK-Preis Zeilenbetrag" := champ_price_einzeln * ChampRelaDoc."Menge kalk.";
                     champ_price_au := champ_price_au + (ChampRelaDoc."Menge kalk." * champ_price_einzeln);
-                    champ_dc_einzeln := "AU-Zeile".Gen_Champs_DC(ChampRelaDoc."SUP Artikelnr.",ChampRelaDoc."Geräte Artikelnr.",
+                    champ_dc_einzeln := "AU-Zeile".Gen_Service_DC(ChampRelaDoc."SUP Artikelnr.",ChampRelaDoc."Geräte Artikelnr.",
                     v_laufzeit,FALSE,Belegzeile.Einkaufswährungscode);
                     champ_dc_au := champ_dc_au + (ChampRelaDoc."Menge kalk." * champ_dc_einzeln);
                     ChampRelaDoc."Service DC einzeln" := champ_dc_einzeln;
@@ -736,13 +736,13 @@ IF Rec.HASFILTER THEN
           //CHAMPS bezieht sich auf Pseudo Positionen
           BEGIN
             EVALUATE(v_laufzeit,COPYSTR(ChampRelaDoc.Laufzeit,1,STRPOS(ChampRelaDoc.Laufzeit,'M')-1));
-            champ_price_einzeln := "AU-Zeile".Gen_Champs_VK(ChampRelaDoc."SUP Artikelnr.",
+            champ_price_einzeln := "AU-Zeile".Gen_Service_VK(ChampRelaDoc."SUP Artikelnr.",
             ChampRelaDoc."Geräte Artikelnr.",v_laufzeit,ChampRelaDoc."Nr.",ChampRelaDoc."Zeilennr.",
             ChampRelaDoc.Fremderwerb,ChampRelaDoc.Basisgerät,FALSE,kalk_prozentsatz);
             ChampRelaDoc."Service VK-Preis einzeln" := champ_price_einzeln;
             ChampRelaDoc."Service VK-Preis Zeilenbetrag" := champ_price_einzeln * ChampRelaDoc."Menge kalk.";
             champ_price_au := champ_price_au + (ChampRelaDoc."Menge kalk." * champ_price_einzeln);
-            champ_dc_einzeln := "AU-Zeile".Gen_Champs_DC(ChampRelaDoc."SUP Artikelnr.",ChampRelaDoc."Geräte Artikelnr.",
+            champ_dc_einzeln := "AU-Zeile".Gen_Service_DC(ChampRelaDoc."SUP Artikelnr.",ChampRelaDoc."Geräte Artikelnr.",
             v_laufzeit,FALSE,Belegzeile.Einkaufswährungscode);
             champ_dc_au := champ_dc_au + (ChampRelaDoc."Menge kalk." * champ_dc_einzeln);
             ChampRelaDoc."Service DC einzeln" := champ_dc_einzeln;
@@ -1111,7 +1111,12 @@ Sheet := Excel.ActiveSheet;                   //definiert aktives worksheet
 Sheet.Range('A1').Value := 'Serviceverlängerung für folgendes System:';
 Sheet.Range('A2').Value := 'Lieferscheinnr.: ';
 Sheet.Range('A3').Value := 'Ende der Vertragslaufzeit: ';
-j := '6';
+Wartungsvertrag.GET(wartungsnr);
+IF Wartungsvertrag.Endkunde = '' THEN
+  j := '6'
+ELSE
+  j := '7';
+
 
 ChampRelaDoc.RESET;
 ChampRelaDoc.SETFILTER(Art,'%1',ChampRelaDoc.Art::"SUP-AU");
@@ -1178,6 +1183,8 @@ IF ChampRelaDoc.FINDFIRST THEN
           text_array[2] := text_array[2] + FORMAT(Wartungsvertrag.Vertragsablaufdatum);
           Sheet.Range('A3').Value := text_array[2];
           Sheet.Range('A4').Value := 'Vertragsnr.: ' + Wartungsvertrag."Wartungsvertragsnr.";
+          IF Wartungsvertrag.Endkunde <> '' THEN
+            Sheet.Range('A5').Value := 'Endkunde: ' + Wartungsvertrag.Endkunde;
       END;
 
   UNTIL ChampRelaDoc.NEXT = 0;
