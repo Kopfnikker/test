@@ -1,4 +1,3 @@
-
 Documentation()
 # TOPAS 01.03.2011-ST System wurde um die SUP Software Upgrade Protection erweitert
 # TOPAS 26.08.2011-ST Neues CHAMPS System released, erweitertes SUP Modul
@@ -2999,7 +2998,8 @@ IF (Artikel."Software Upgrade Protection" = TRUE) THEN
             END;
 
             IF (ACTS = FALSE) AND (ACHAT = FALSE) THEN
-              EXIT((ROUND(((Champs.MSRP*0.72)*(kalk_laufzeit / v_laufzeit)) * (champs_discount),rundgs_faktor))
+              EXIT((ROUND((((Champs.MSRP*0.72)*Champs."Laufzeit in Jahren")*(kalk_laufzeit / v_laufzeit))
+              * (champs_discount),rundgs_faktor))
                     *spezial_discount)
             ELSE
               IF (ACHAT = TRUE) OR (ACTS = TRUE) THEN
