@@ -4529,7 +4529,7 @@ IF (Artikel."Software Upgrade Protection" = TRUE) THEN
         END;
 
         IF (Artikel.Artikelgruppe <> 'ACTS') AND (Artikel.Artikelgruppe <> 'ACHAT')  THEN
-          EXIT((ROUND(((Champs.MSRP*0.72) * (Laufzeit/v_laufzeit))*(champs_discount),rundgs_faktor))
+          EXIT((ROUND((((Champs.MSRP*0.72)*Champs."Laufzeit in Jahren") * (Laufzeit/v_laufzeit))*(champs_discount),rundgs_faktor))
           *spezial_discount)
         ELSE
           IF (Artikel.Artikelgruppe = 'ACHAT') OR (Artikel.Artikelgruppe = 'ACTS') THEN
